@@ -1,0 +1,23 @@
+{
+  "name": "subtitles-to-elasticsearch",
+  "version": "1.0.0",
+  "description": "sends subtitles to elastic search",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dineshraj/subtitles-to-elasticsearch.git"
+  },
+  "author": "Dineshraj Goomany",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dineshraj/subtitles-to-elasticsearch/issues"
+  },
+  "homepage": "https://github.com/dineshraj/subtitles-to-elasticsearch#readme",
+  "dependencies": {
+    "request": "^2.83.0",
+    "xml2json": "^0.11.0"
+  }
+}
