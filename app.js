@@ -44,6 +44,17 @@ function stripTagsFromString(string) {
     const subtitleJson = parser.toJson(subtitleString);
     const subtitleContents = JSON.parse(subtitleJson).tt.body.div.p;
 
-    console.log(subtitleContents);
+    subtitleContents.forEach((subtitle) => {
+      console.log(timeInSeconds(subtitle.begin));
+      console.log(subtitle.$t);
+      console.log();
+    });
   // });
 });
+
+function timeInSeconds(time) {
+  let times = time.split(':');
+  return parseInt(times[0]) * 60 * 60
+    + parseInt(times[1]) * 60
+    + parseInt(times[2]);
+}
