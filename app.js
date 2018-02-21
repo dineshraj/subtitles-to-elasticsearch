@@ -13,8 +13,8 @@ const subtitleUri = process.argv[2];
 
 function stripTagsFromString(string) {
   const stringWithoutTags = string
-    .replace(/\<br \/\>/g, ' ')
-    .replace(/\<\/?span\w+\>/g, '');
+    .replace(/\<br\s*\/\>/g, ' ')
+    .replace(/\<\/?span[\w\s=:"]*\>/g, '');
 
   return stringWithoutTags;
 }
