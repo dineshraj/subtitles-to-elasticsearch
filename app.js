@@ -3,27 +3,76 @@
 const request = require('request');
 const parser = require('xml2json');
 
-// const subtitlesArray = process.argv[2];
+const AWS = require('aws-sdk');
+const connectionClass = require('http-aws-es');
+const elasticsearch = require('elasticsearch');
+
 const subtitleUri = process.argv[2];
 
-// if (!Array.isArray(subtitlesArray)) {
-//   console.log('please provide an array');
-//   return;
-// }
+AWS.config.update({
+  region: 'eu-west-1',
+  accessKeyId: process.argv[3],
+  secretAccessKey: process.argv[4]
+});
 
-const versionPid = /^.+_(\w+)_\d+.xml/.exec(subtitleUri)[1];
-console.log("Version PID: " + versionPid);
+const elasticClient = new elasticsearch.Client({
+  host: 'https://search-test-store-i3cuibx6ml7vsdrsbo3xhngg4e.eu-west-1.es.amazonaws.com',
+  log: 'error',
+  connectionClass: connectionClass,
+  amazonES: {
+    credentials: new AWS.EnvironmentCredentials('AWS')
+  }
+});
 
-request({
-    url: 'http://www.bbc.co.uk/programmes/' + versionPid,
-    followRedirect: false
-  }, (err, res, body) => {
-    let redirectUrl = res.headers.location.split('/');
-    episodePidFound(redirectUrl[redirectUrl.length - 1]);
+function getEpisodePid(versionPid) {
+  return new Promise((resolve, reject) => {
+    request({
+      url: `http://www.bbc.co.uk/programmes/${versionPid}`,
+      followRedirect: false
+    }, (err, res, body) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      const redirectUrlArray = res.headers.location.split('/');
+      const episodePid = redirectUrlArray[redirectUrlArray.length - 1];
+
+      resolve(episodePid);
+    });
+  });
+}
+
+function formatSubtitleDataForEs(rawSubtitleData, episodePid) {
+  const subtitleString = stripTagsFromString(rawSubtitleData);
+  const subtitleJson = parser.toJson(subtitleString);
+  const subtitleContents = JSON.parse(subtitleJson).tt.body.div.p;
+  let esSubtitleDataArray = [];
+
+  subtitleContents.forEach((subtitleObject) => {
+    esSubtitleDataArray.push({
+      index: {
+        _index: 'subtitles',
+        _type: 'subtitle'
+      }
+    });
+    esSubtitleDataArray.push({
+      text: subtitleObject.$t,
+      timecode: timeInSeconds(subtitleObject.begin),
+      episodePid: episodePid
+    });
   });
 
-function episodePidFound(episodePid) {
-  console.log("Episode PID: " + episodePid);
+  return esSubtitleDataArray;
+}
+
+function sendSubtitleDataToEs(formattedSubtitleData) {
+  elasticClient.bulk({
+    body: formattedSubtitleData
+  }, (err, resp) => {
+    if (err) {
+      console.error('error:', err);
+    }
+  });
 }
 
 function stripTagsFromString(string) {
@@ -34,16 +83,22 @@ function stripTagsFromString(string) {
   return stringWithoutTags;
 }
 
-// subtitlesArray.forEach((subtitleUri) => {
-  request.get(subtitleUri, (err, res, body) => {
-    if (err) {
-      return console.error('Error', err);
-    }
+function timeInSeconds(time) {
+  const times = time.split(':');
+  const hoursInSeconds = parseInt(times[0]) * 60 * 60;
+  const minutesinSeconds = parseInt(times[1]) * 60;
+  const seconds = parseInt(times[2]);
 
-    const subtitleString = stripTagsFromString(body);
-    const subtitleJson = parser.toJson(subtitleString);
-    const subtitleContents = JSON.parse(subtitleJson).tt.body.div.p;
+  return hoursInSeconds + minutesinSeconds + seconds;
+}
 
-    console.log(subtitleContents);
-  // });
+request.get(subtitleUri, (err, res, body) => {
+  if (err) {
+    return console.error('error:', err);
+  }
+  const versionPid = /^.+_(\w+)_\d+.xml/.exec(subtitleUri)[1];
+  getEpisodePid(versionPid).then((episodePid) => {
+    const formattedSubtitleData = formatSubtitleDataForEs(body, episodePid);
+    sendSubtitleDataToEs(formattedSubtitleData);
+  });
 });
