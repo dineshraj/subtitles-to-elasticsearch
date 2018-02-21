@@ -1,4 +1,4 @@
-# Subtitle searching
+# Subtitle indexing with a lambda
 
 Output from the Topic that will be processed by our lambda:  
 ```json
@@ -97,68 +97,8 @@ https://github.com/awslabs/amazon-elasticsearch-lambda-samples/blob/master/src/s
 ## Steps in lambda function
 
 - get vPid: `event.user_properties.version_pid`
-- get ePid: `curl -I www.bbc.co.uk/programmes/$vpid` (find node alternative) and get returned `Location`
+- get ePid: `curl -I www.bbc.co.uk/programmes/$vpid` (check how to run node modules (http / request?) in a lambda) and get returned `Location`
 - get subtitle file from `event.user_properties.head_check_locations`
-- mangle subtitle file into appropriate JSON format (potential example below)
- - As part of this, change timecode into `1h4m55s` format for iPlayer `#t=1h4m55s` format
+- mangle subtitle file into appropriate JSON format
+ - As part of this, change timecode into seconds for SMP to take in as key moments
 - push data to ElasticSearch
-
-### Potential data structure
-
-A possible sample document to add into the ES and see if we can search it usefully:
-
-```json
-{
-  "episode-pid": "b09rbtsb",
-  "subtitles": [
-    {
-      "timecode": "5m48s",
-      "text": "There are some places on Earth..."
-    },
-    {
-      "timecode": "10m44s",
-      "text": "..that simply take your breath away."
-    },
-    {
-      "timecode": "16m56s",
-      "text": "Lush tropical forests."
-    },
-    {
-      "timecode": "20m64s",
-      "text": "Spectacular islands."
-    },
-    {
-      "timecode": "26m24s",
-      "text": "Soaring mountain ranges."
-    },
-    {
-      "timecode": "38m24s",
-      "text": "And for the people who call these extraordinary places home..."
-    }
-  ]
-}
-```
-
-## ElasticSearch integration
-
-Requests have to be in form of `http://localhost:9200/<index>/<type>/<id>` (where `id` is optional)
-
-### Useful cli commands
-
-```bash
-curl -XPUT "http://localhost:9200/episodes/episode/123457" -H 'Content-Type: application/json' -d'
-{
-  "subtitles": [{
-    "timecode": "0m10s",
-    "text": "tower of london was built ages ago"
-  },
-  {
-    "timecode": "3m18s",
-    "text": "I love the tower of london"
-  },
-  {
-    "timecode": "5m18s",
-    "text": "this is nothing"
-  }]
-}'
-```
