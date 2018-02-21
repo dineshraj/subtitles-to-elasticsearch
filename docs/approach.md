@@ -162,3 +162,19 @@ curl -XPUT "http://localhost:9200/episodes/episode/123457" -H 'Content-Type: app
   }]
 }'
 ```
+
+## Getting subtitle URL locations
+
+Given a brand PID, you can run a script to find the locations of subtitles URLs for programmes in that brand.
+
+You will need to query the PIPs API, so for this you must export a PEM_FILE which is your developer certificate.
+
+Then run the rake task, giving a brand PID.
+
+```bash
+cd scripts
+export PEM_FILE=/path/to/your/dev-cert.pem
+rake get_subtitles_urls_for_brand b00qfb83
+```
+
+A JSON file will be produced, called `subtitles_b00qfb83.json`
