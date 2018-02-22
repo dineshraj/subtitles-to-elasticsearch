@@ -34,7 +34,7 @@ function searchForEpisodes(query) {
       var aggregates = resp.aggregations.by_episode.buckets;
       var urls = aggregates.map(result => {
         return {
-          url: `https://www.bbc.co.uk/iplayer/episode/${result.key}/#search=${encodeURIComponent(query)}`,
+          url: `https://www.bbc.co.uk/iplayer/episode/${result.key}/#q=${encodeURIComponent(query)}`,
           episodePid: result.key,
           occurrences: result.doc_count
         }
