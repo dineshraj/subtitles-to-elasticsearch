@@ -162,4 +162,3 @@ curl -XPUT "http://localhost:9200/episodes/episode/123457" -H 'Content-Type: app
   }]
 }'
 ```
-
