@@ -2,12 +2,13 @@
 
 const request = require('request');
 const parser = require('xml2json');
+const fs = require('fs');
 
 const AWS = require('aws-sdk');
 const connectionClass = require('http-aws-es');
 const elasticsearch = require('elasticsearch');
 
-const subtitleUri = process.argv[2];
+const subtitleLocationsFile = process.argv[2];
 
 AWS.config.update({
   region: 'eu-west-1',
@@ -15,14 +16,16 @@ AWS.config.update({
   secretAccessKey: process.argv[4]
 });
 
-const elasticClient = new elasticsearch.Client({
-  host: 'https://search-test-store-i3cuibx6ml7vsdrsbo3xhngg4e.eu-west-1.es.amazonaws.com',
-  log: 'error',
-  connectionClass: connectionClass,
-  amazonES: {
-    credentials: new AWS.EnvironmentCredentials('AWS')
-  }
-});
+function configureEsClient() {
+  return new elasticsearch.Client({
+    host: 'https://search-test-store-i3cuibx6ml7vsdrsbo3xhngg4e.eu-west-1.es.amazonaws.com',
+    log: 'error',
+    connectionClass: connectionClass,
+    amazonES: {
+      credentials: new AWS.EnvironmentCredentials('AWS')
+    }
+  });
+}
 
 function getEpisodePid(versionPid) {
   return new Promise((resolve, reject) => {
@@ -65,7 +68,7 @@ function formatSubtitleDataForEs(rawSubtitleData, episodePid) {
   return esSubtitleDataArray;
 }
 
-function sendSubtitleDataToEs(formattedSubtitleData) {
+function sendSubtitleDataToEs(formattedSubtitleData, elasticClient) {
   elasticClient.bulk({
     body: formattedSubtitleData
   }, (err, resp) => {
@@ -92,13 +95,28 @@ function timeInSeconds(time) {
   return hoursInSeconds + minutesinSeconds + seconds;
 }
 
-request.get(subtitleUri, (err, res, body) => {
+function requestAndProcessSubtitle(subtitleUri) {
+  request.get(subtitleUri, (err, res, body) => {
+    if (err) {
+      return console.error('error:', err);
+    }
+    const versionPid = /^.+_(\w+)_\d+.xml/.exec(subtitleUri)[1];
+    getEpisodePid(versionPid).then((episodePid) => {
+      const formattedSubtitleData = formatSubtitleDataForEs(body, episodePid);
+      const elasticClient = configureEsClient();
+      sendSubtitleDataToEs(formattedSubtitleData);
+    });
+  });
+}
+
+fs.readFile(subtitleLocationsFile, 'utf8', (err, contents) => {
   if (err) {
-    return console.error('error:', err);
+    console.error(err);
   }
-  const versionPid = /^.+_(\w+)_\d+.xml/.exec(subtitleUri)[1];
-  getEpisodePid(versionPid).then((episodePid) => {
-    const formattedSubtitleData = formatSubtitleDataForEs(body, episodePid);
-    sendSubtitleDataToEs(formattedSubtitleData);
+
+  const fileContentsInJson = JSON.parse(contents);
+
+  fileContentsInJson.subtitleUrls.forEach((subtitleUrl) => {
+    requestAndProcessSubtitle(subtitleUrl);
   });
 });
