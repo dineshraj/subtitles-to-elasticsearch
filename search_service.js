@@ -17,6 +17,7 @@ function searchForEpisodes(query) {
       index: 'subtitles',
       type: 'subtitle',
       body: {
+        size: 20,
         query: {
           match: {
             text: query
@@ -28,7 +29,8 @@ function searchForEpisodes(query) {
               field: "episodePid",
               order: {
                 "max_score.value": "desc"
-              }
+              },
+              size: 20
             },
             aggs: {
               max_score: {
@@ -66,6 +68,7 @@ function searchEpisodeForPhrase(episodePid, query) {
       index: 'subtitles',
       type: 'subtitle',
       body: {
+        size: 50,
         query: {
           bool: {
             must: {
