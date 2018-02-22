@@ -25,7 +25,20 @@ function searchForEpisodes(query) {
         aggs: {
           by_episode: {
             terms: {
-              field: "episodePid"
+              field: "episodePid",
+              order: {
+                "max_score.value": "desc"
+              }
+            },
+            aggs: {
+              max_score: {
+                max: {
+                  script: {
+                    lang: "painless",
+                    inline: "_score"
+                  }
+                }
+              }
             }
           }
         }
@@ -34,9 +47,10 @@ function searchForEpisodes(query) {
       var aggregates = resp.aggregations.by_episode.buckets;
       var urls = aggregates.map(result => {
         return {
-          url: `https://www.bbc.co.uk/iplayer/episode/${result.key}/#search=${encodeURIComponent(query)}`,
+          url: `https://www.bbc.co.uk/iplayer/episode/${result.key}/#q=${encodeURIComponent(query)}`,
           episodePid: result.key,
-          occurrences: result.doc_count
+          occurrences: result.doc_count,
+          score: result.max_score.value
         }
       })
       resolve(urls);
