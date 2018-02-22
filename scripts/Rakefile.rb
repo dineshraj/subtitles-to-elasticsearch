@@ -3,8 +3,8 @@ require 'json'
 require 'net/https'
 require 'uri'
 
-desc "Get subtitles URLs for brand"
-task :get_subtitles_urls_for_brand do
+desc "Get subtitles URLs for TLEO"
+task :get_subtitles_urls_for_tleo do
   ARGV.each { |a| task a.to_sym do ; end }
 
   if !ENV['PEM_FILE']
@@ -13,9 +13,9 @@ task :get_subtitles_urls_for_brand do
     exit
   end
 
-  brand_pid = ARGV[1]
+  tleo = ARGV[1]
 
-  ibl = JSON.parse(open("http://ibl.api.bbci.co.uk/ibl/v1/programmes/#{brand_pid}/episodes?per_page=100").read)
+  ibl = JSON.parse(open("http://ibl.api.bbci.co.uk/ibl/v1/programmes/#{tleo}/episodes?per_page=100").read)
 
   results = []
 
@@ -38,8 +38,8 @@ task :get_subtitles_urls_for_brand do
     end
   end
 
-  File.open("subtitles-#{brand_pid}.json", 'w') do |f|
-    f.write({'brand_pid': brand_pid, 'episodes': results}.to_json)
+  File.open("subtitles-#{tleo}.json", 'w') do |f|
+    f.write({'tleo': tleo, 'episodes': results}.to_json)
   end
 
 end
