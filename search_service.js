@@ -88,9 +88,12 @@ function searchEpisodeForPhrase(episodePid, query) {
     }).then(function (resp) {
       var hits = resp.hits.hits;
       var output = hits.map(hit => {
+        var timecode = hit._source.timecode - 10;
+        if (timecode < 0) timecode = 0;
+
         return {
           type: 'key',
-          start: hit._source.timecode,
+          start: timecode,
           text: hit._source.text
         };
       });
