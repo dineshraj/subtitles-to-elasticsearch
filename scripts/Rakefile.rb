@@ -20,8 +20,6 @@ task :get_subtitles_urls_for_tleo do
   results = []
 
   ibl['programme_episodes']['elements'].each do |episode|
-    epid = episode['id']
-    title = episode['title'] + ' - ' + episode['subtitle']
     version = episode['versions'].first
     vpid = version['id']
     puts vpid
@@ -29,17 +27,12 @@ task :get_subtitles_urls_for_tleo do
 
     if subtitles_url
       puts subtitles_url
-      results << {
-        'version_pid': vpid,
-        'episode_pid': epid,
-        'title': title,
-        'subtitles_url': subtitles_url
-      }
+      results << subtitles_url
     end
   end
 
   File.open("subtitles-#{tleo}.json", 'w') do |f|
-    f.write({'tleo': tleo, 'episodes': results}.to_json)
+    f.write({'tleo': tleo, 'subtitleUrls': results}.to_json)
   end
 
 end
