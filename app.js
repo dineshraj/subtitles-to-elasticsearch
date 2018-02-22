@@ -104,7 +104,7 @@ function requestAndProcessSubtitle(subtitleUri) {
     getEpisodePid(versionPid).then((episodePid) => {
       const formattedSubtitleData = formatSubtitleDataForEs(body, episodePid);
       const elasticClient = configureEsClient();
-      sendSubtitleDataToEs(formattedSubtitleData);
+      sendSubtitleDataToEs(formattedSubtitleData,  elasticClient);
     });
   });
 }
