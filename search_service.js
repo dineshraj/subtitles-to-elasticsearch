@@ -1,3 +1,4 @@
+var cors = require('cors');
 var elasticsearch = require('elasticsearch');
 var express = require('express');
 var app = express();
@@ -101,6 +102,8 @@ function searchEpisodeForPhrase(episodePid, query) {
     })
   })
 }
+
+app.use(cors())
 
 app.get('/search/:episodePid', function(req, response) {
   const query = req.query.q;

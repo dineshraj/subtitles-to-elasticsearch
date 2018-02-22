@@ -18,6 +18,7 @@
   "homepage": "https://github.com/dineshraj/subtitles-to-elasticsearch#readme",
   "dependencies": {
     "aws-sdk": "^2.200.0",
+    "cors": "^2.8.4",
     "elasticsearch": "^14.1.0",
     "express": "^4.16.2",
     "http-aws-es": "^4.0.0",
