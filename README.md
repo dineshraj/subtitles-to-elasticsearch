@@ -15,3 +15,6 @@ Takes in an XML subtitle file and posts to AWS Elastic Search in the following f
 
 ## Lambda approach (not implemented yet)
 [See readme](docs/lambda-approach.md)
+
+## Elasticsearch queries
+[See readme](docs/elasticstore-info.md)
