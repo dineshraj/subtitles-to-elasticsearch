@@ -18,7 +18,7 @@ AWS.config.update({
 
 function configureEsClient() {
   return new elasticsearch.Client({
-    host: 'https://search-test-store-i3cuibx6ml7vsdrsbo3xhngg4e.eu-west-1.es.amazonaws.com',
+    host: 'https://search-test-subtitles-store-lfbgr2ddndtyd2gqjcn35buicu.eu-west-1.es.amazonaws.com/',
     log: 'error',
     connectionClass: connectionClass,
     amazonES: {
