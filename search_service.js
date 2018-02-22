@@ -104,8 +104,8 @@ app.get('/search', function(req, response) {
   searchForEpisodes(query).then(results => response.send(results));
 })
 
-app.listen(3000);
-console.log('should be listening on port 3000')
+app.listen(port);
+console.log(`should be listening on port ${port}`)
 
 if (episodePid) {
   searchEpisodeForPhrase(episodePid, query).then(results => console.log(`var player = window.embeddedMedia.players[0];
@@ -116,3 +116,5 @@ if (episodePid) {
 } else if (query) {
   searchForEpisodes(query).then(results => console.log(results));
 }
+
+module.exports = {searchEpisodeForPhrase, searchForEpisodes}
