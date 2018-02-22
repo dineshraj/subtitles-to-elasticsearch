@@ -56,7 +56,7 @@ curl -XGET 'https://search-test-subtitles-store-lfbgr2ddndtyd2gqjcn35buicu.eu-we
                 }
             },
             "filter" : {
-                "term" : { "episode" : "b09rbtsb" }
+                "term" : { "episodePid" : "b09s36kr" }
             }
         }
     }
