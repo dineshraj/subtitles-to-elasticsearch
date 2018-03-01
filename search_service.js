@@ -1,3 +1,4 @@
+var cors = require('cors');
 var elasticsearch = require('elasticsearch');
 var express = require('express');
 var app = express();
@@ -17,6 +18,7 @@ function searchForEpisodes(query) {
       index: 'subtitles',
       type: 'subtitle',
       body: {
+        size: 20,
         query: {
           match: {
             text: query
@@ -28,7 +30,8 @@ function searchForEpisodes(query) {
               field: "episodePid",
               order: {
                 "max_score.value": "desc"
-              }
+              },
+              size: 20
             },
             aggs: {
               max_score: {
@@ -66,6 +69,7 @@ function searchEpisodeForPhrase(episodePid, query) {
       index: 'subtitles',
       type: 'subtitle',
       body: {
+        size: 50,
         query: {
           bool: {
             must: {
@@ -85,9 +89,12 @@ function searchEpisodeForPhrase(episodePid, query) {
     }).then(function (resp) {
       var hits = resp.hits.hits;
       var output = hits.map(hit => {
+        var timecode = hit._source.timecode - 10;
+        if (timecode < 0) timecode = 0;
+
         return {
           type: 'key',
-          start: hit._source.timecode,
+          start: timecode,
           text: hit._source.text
         };
       });
@@ -95,6 +102,8 @@ function searchEpisodeForPhrase(episodePid, query) {
     })
   })
 }
+
+app.use(cors())
 
 app.get('/search/:episodePid', function(req, response) {
   const query = req.query.q;
